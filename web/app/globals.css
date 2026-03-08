@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --font-mplus: var(--font-mplus);
+  --font-dotgothic:var(--font-dotgothic);
+  --font-orbitron:var(--font-orbitron);
+}
+
+/* その他のカスタムスタイル */
+.no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.swiper-button-prev,.swiper-button-next{
+  color: #a1a1a1 !important;
+  font-weight: bold !important;
+ transform: scale(80%) !important;
+}
+.swiper-button-prev {
+  left: -50px !important;
+}
+.swiper-button-next {
+  right: -50px !important;
+}
+
+.swiper-button-disabled {
+  opacity: 0 !important;
+}

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Profile" ADD COLUMN     "voice" INTEGER NOT NULL DEFAULT 3;

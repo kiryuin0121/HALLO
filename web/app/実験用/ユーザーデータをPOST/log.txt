@@ -1,0 +1,294 @@
+"use client";
+
+import { signUpAtom } from "@/atoms/signUp";
+import { Campus, Gender, Major, MBTI } from "@/generated/prisma/enums";
+import { signUpAction } from "@/lib/actions/auth";
+import {
+  CampusLabel,
+  GenderLabel,
+  Grade,
+  MajorLabel,
+  MBTILabel,
+} from "@/types/profile";
+import { useAtom } from "jotai";
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
+import { useActionState } from "react";
+
+const grades = [1, 2, 3, 4] as const;
+
+const Step6 = () => {
+  const [signUp, setSignUp] = useAtom(signUpAtom);
+  const [isEdit, setIsEdit] = useState(false);
+
+  const [result, formAction, isPending] = useActionState(signUpAction, {
+    success: false,
+    error: ""
+  });
+
+  const router = useRouter();
+  if(result.success){
+    router.push("/metavarse");
+  }
+  const formRef = useRef<HTMLFormElement>(null!);
+  const handleClick = () => {
+    if (isEdit) {
+      const formData = new FormData(formRef.current);
+      setSignUp((formState) => ({
+        ...formState,
+        name: formData.get("name") as string,
+        campus: formData.get("campus") as Campus,
+        major: formData.get("major") as Major,
+        grade: Number(formData.get("grade")) as Grade,
+        gender: formData.get("gender") as Gender,
+        mbti: formData.get("mbti") as MBTI,
+        bio: formData.get("bio") as string,
+        email: formData.get("email") as string,
+      }));
+    }
+    setIsEdit((ie) => !ie);
+  };
+
+  return (
+    <section className="relative w-[90vw] h-[calc(100vh-118px)] mx-auto pt-8 pb-[25vh] space-y-8 text-white overflow-y-scroll no-scrollbar">
+
+      <div className="w-full">
+        <h3 className="text-xl font-bold text-center text-neutral-300 mb-4">
+          以下の入力内容で間違いありませんか？
+        </h3>
+
+        <form
+          action={formAction}
+          ref={formRef}
+          className="bg-neutral-900/40 p-8 rounded-xl shadow space-y-8 w-full"
+        >
+          {/* 名前 */}
+          <div>
+            <h4 className="text-sm text-neutral-400">名前</h4>
+            {isEdit ? (
+              <input
+                type="text"
+                name="name"
+                defaultValue={signUp.name}
+                required
+                className="border border-neutral-800 bg-neutral-900 p-2 rounded w-full"
+              />
+            ) : (
+              <>
+                <div className="border border-neutral-800 bg-neutral-900 p-2 rounded">
+                  {signUp.name}
+                </div>
+                <input type="hidden" name="name" value={signUp.name} />
+              </>
+            )}
+          </div>
+
+          {/* 学校 */}
+          <div>
+            <h4 className="text-sm text-neutral-400">学校</h4>
+            {isEdit ? (
+              <select
+                name="campus"
+                defaultValue={signUp.campus || ""}
+                required
+                className="border border-neutral-800 bg-neutral-900 p-2 rounded w-full"
+              >
+                {Object.entries(CampusLabel).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <>
+                <div className="border border-neutral-800 bg-neutral-900 p-2 rounded">
+                  {signUp.campus ? CampusLabel[signUp.campus as Campus] : ""}
+                </div>
+                <input type="hidden" name="campus" value={signUp.campus} />
+              </>
+            )}
+          </div>
+
+          {/* 学部 */}
+          <div>
+            <h4 className="text-sm text-neutral-400">学部</h4>
+            {isEdit ? (
+              <select
+                name="major"
+                defaultValue={signUp.major || ""}
+                required
+                className="border border-neutral-800 bg-neutral-900 p-2 rounded w-full"
+              >
+                {Object.entries(MajorLabel).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <>
+                <div className="border border-neutral-800 bg-neutral-900 p-2 rounded">
+                  {signUp.major ? MajorLabel[signUp.major as Major] : ""}
+                </div>
+                <input type="hidden" name="major" value={signUp.major} />
+              </>
+            )}
+          </div>
+
+          {/* 学年 */}
+          <div>
+            <h4 className="text-sm text-neutral-400">学年</h4>
+            {isEdit ? (
+              <select
+                name="grade"
+                defaultValue={signUp.grade || ""}
+                required
+                className="border border-neutral-800 bg-neutral-900 p-2 rounded w-full"
+              >
+                {grades.map((g) => (
+                  <option key={g} value={g}>
+                    {g}年
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <>
+                <div className="border border-neutral-800 bg-neutral-900 p-2 rounded">
+                  {signUp.grade}
+                </div>
+                <input type="hidden" name="grade" value={signUp.grade} />
+              </>
+            )}
+          </div>
+
+          {/* 性別 */}
+          <div>
+            <h4 className="text-sm text-neutral-400">性別</h4>
+            {isEdit ? (
+              <select
+                name="gender"
+                defaultValue={signUp.gender || ""}
+                required
+                className="border border-neutral-800 bg-neutral-900 p-2 rounded w-full"
+              >
+                {Object.entries(GenderLabel).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <>
+                <div className="border border-neutral-800 bg-neutral-900 p-2 rounded">
+                  {signUp.gender ? GenderLabel[signUp.gender as Gender] : ""}
+                </div>
+                <input type="hidden" name="gender" value={signUp.gender} />
+              </>
+            )}
+          </div>
+
+          {/* MBTI */}
+          <div>
+            <h4 className="text-sm text-neutral-400">性格</h4>
+            {isEdit ? (
+              <select
+                name="mbti"
+                defaultValue={signUp.mbti || ""}
+                required
+                className="border border-neutral-800 bg-neutral-900 p-2 rounded w-full"
+              >
+                {Object.entries(MBTILabel).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <>
+                <div className="border border-neutral-800 bg-neutral-900 p-2 rounded">
+                  {signUp.mbti ? MBTILabel[signUp.mbti as MBTI] : ""}
+                </div>
+                <input type="hidden" name="mbti" value={signUp.mbti} />
+              </>
+            )}
+          </div>
+
+          {/* 自己紹介 */}
+          <div>
+            <h4 className="text-sm text-neutral-400">自己紹介</h4>
+            {isEdit ? (
+              <input
+                type="text"
+                name="bio"
+                value={signUp.bio ?? ""}
+                onChange={(e) =>
+                  setSignUp((prev) => ({ ...prev, bio: e.target.value }))
+                }
+                className="border border-neutral-800 bg-neutral-900 p-2 rounded w-full"
+              />
+            ) : (
+              <>
+                <div className="border border-neutral-800 bg-neutral-900 p-3 rounded whitespace-pre-line">
+                  {signUp.bio || "未入力"}
+                </div>
+                <input type="hidden" name="bio" value={signUp.bio} />
+              </>
+            )}
+          </div>
+
+          {/* アバター */}
+          <input
+            type="hidden"
+            name="avatarConfig"
+            value={signUp.avatarConfig}
+          />
+
+          {/* メールアドレス */}
+          <div>
+            <h4 className="text-sm text-neutral-400">メールアドレス</h4>
+            {isEdit ? (
+              <input
+                type="email"
+                name="email"
+                defaultValue={signUp.email}
+                required
+                className="border border-neutral-800 bg-neutral-900 p-2 rounded w-full"
+              />
+            ) : (
+              <>
+                <div className="border border-neutral-800 bg-neutral-900 p-2 rounded">
+                  {signUp.email}
+                </div>
+                <input type="hidden" name="email" value={signUp.email} />
+              </>
+            )}
+          </div>
+
+          {/* パスワード */}
+          <input type="hidden" name="password" value={signUp.password} />
+
+          {/* ボタン */}
+          <div className="flex justify-center mt-10 gap-4">
+            <button
+              type="button"
+              onClick={handleClick}
+              className="px-6 py-2 rounded border border-current text-neutral-600 hover:text-neutral-500 hover:shadow-[0_0_10px_#38bdf8]"
+            >
+              {isEdit ? "更新する" : "編集する"}
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 rounded text-neutral-400 border border-neutral-400 hover:shadow-[0_0_10px_#38bdf8]"
+            >
+              登録する
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  );
+};
+
+export default Step6;
+
+

@@ -1,0 +1,271 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String       @id @default(uuid())
+  name          String //名前
+  email         String       @unique //学校用メールアドレス
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // relation
+  profile       Profile?
+  avatar        Avatar?
+  messages      Message[]
+  rooms         ChatMember[]
+  // BetterAuth
+  emailVerified Boolean      @default(false)
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("user")
+}
+
+
+model Profile {
+  id        String   @id @default(uuid())
+  campus    Campus //在籍校
+  major     Major //所属学部
+  grade     Int //学年(1,2,3,4のいずれか)
+  gender    Gender //性別
+  mbti      MBTI //性格
+  voice Int @default(3) //voiceVoxのspeakerId(https://www.voicevox.su-shiki.com/voicevox-id)
+  hometown String @default("未設定")
+  bio       String //自己紹介文など
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // relation
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+enum Campus {
+  osaka
+  tokyo
+  nagoya
+}
+enum Major {
+  game
+  cg_design_anime
+  music
+  cardesign
+  it_web_ai
+}
+enum Gender {
+  male
+  female
+  other
+}
+enum MBTI {
+  ISTJ
+  ISFJ
+  INFJ
+  INTJ
+  ISTP
+  ISFP
+  INFP
+  INTP
+  ESTP
+  ESFP
+  ENFP
+  ENTP
+  ESTJ
+  ESFJ
+  ENFJ
+  ENTJ
+}
+
+
+
+model Avatar {
+  id        String   @id @default(uuid())
+  // config    Json //3dモデルの情報(どういうデータ構造かわからないから保留) ←いったんカラーコードをいれておくことにする。
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relation
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  avatarParts AvatarParts[]
+}
+
+// AvatarとPartsの中間テーブル
+model AvatarParts {
+  id        String @id @default(uuid())
+
+  avatarId  String
+  partsId   String
+
+  avatar Avatar @relation(fields: [avatarId], references: [id], onDelete: Cascade)
+  parts  Parts  @relation(fields: [partsId], references: [id])
+
+  color String?
+
+  @@unique([avatarId, partsId])
+}
+
+// パーツのカテゴリ(頭、髪、トップス、ボトムスなど)
+model Category {
+  id        String        @id @default(uuid())
+  name      PartsCategory
+  removable Boolean @default(false)
+  serial    Int           @default(autoincrement())
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  // relation
+  parts     Parts[]
+
+  defaultPartsId String?
+  defaultParts   Parts?  @relation("DefaultParts", fields: [defaultPartsId], references: [id])
+
+  colorPalette ColorPalette?
+}
+
+enum PartsCategory {
+  head
+  hair
+  face
+  eyes
+  eyebrows
+  nose
+  facial_hair
+  glasses
+  hat
+  top
+  bottom
+  shoes
+  accessories
+}
+
+// パーツ(どの顔か、どの髪型か、...)
+model Parts {
+  id        String   @id @default(uuid())
+  name      String
+  image     String //画像url
+  model     String //3dモデルrul(gltf)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // relation
+
+  // relations
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  defaultOf Category[] @relation("DefaultParts")
+
+  avatarParts AvatarParts[]
+}
+
+model ColorPalette {
+  id     String      @id @default(uuid())
+  name   PaletteName
+  colors String[]
+
+  categoryId String   @unique
+  category   Category @relation(fields: [categoryId], references: [id])
+}
+
+enum PaletteName {
+  skin
+  hair
+  clothers
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  // relation
+  // user(送信者)
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  // room
+  roomId String
+  room   ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+// User-ChatRoomの中間テーブル
+model ChatMember {
+  id       String   @id @default(uuid())
+  // relation
+  // user
+  memberId String
+  member   User     @relation(fields: [memberId], references: [id])
+  // chatRoom
+  roomId   String
+  room     ChatRoom @relation(fields: [roomId], references: [id])
+
+  @@unique([memberId, roomId])
+}
+
+model ChatRoom {
+  id        String       @id @default(uuid())
+  chatStyle ChatStyle
+  createdAt DateTime     @default(now())
+  // relation
+  members   ChatMember[]
+  messages  Message[]
+}
+
+enum ChatStyle {
+  direct //個別チャット
+  group //グループチャット
+  space //全体チャット
+}
+
+// --------------------BetterAuth--------------------
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
+  @@map("verification")
+}
