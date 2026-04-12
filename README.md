@@ -1,4 +1,4 @@
-# HAL東京/大阪/名古屋 専用メタバース -HALLO-
+# 学内メタバース -HALLO-
 ![img01](screenshot/img01.png)
 ![img02](screenshot/img02.png)
 ![img03](screenshot/img03.png)
