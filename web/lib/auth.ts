@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import os from "os";
 // If your Prisma file is located elsewhere, you can change the path
 
 // 参考資料
@@ -8,6 +7,7 @@ import os from "os";
 import prisma from "./prisma";
 import { nextCookies } from "better-auth/next-js";
 import bcrypt from "bcryptjs";
+import { APP_URL } from "./env";
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     //データーベース
@@ -35,7 +35,7 @@ export const auth = betterAuth({
   },
   plugins: [nextCookies()],
   secret: process.env.BETTER_AUTH_SECRET!, //暗号化、署名、ハッシュ化に使用される秘密鍵
-  baseURL: `http://${os.hostname}:${3000}`, //アプリケーションサーバーがホストされているルートUR
+  baseURL: APP_URL, //アプリケーションサーバーがホストされているルートUR
   basePath: "/api/auth", //etter Authルートがマウントされるパスです。
   user: {
     //ユーザー関連の設定

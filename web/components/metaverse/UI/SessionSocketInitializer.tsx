@@ -4,6 +4,7 @@ import { Session, User } from 'better-auth'
 import { atom, useAtomValue, useSetAtom } from 'jotai'
 import { useEffect } from 'react'
 import { io, Socket } from 'socket.io-client';
+import { SOCKET_URL } from '@/lib/env';
 /* 
   「ログイン→メタバースに入室、ログアウト/ページを離脱→メタバースから退出」というシナリオを実現させるために、globalStateに以下2つを保持する。
   ・現在ログイン状態(ユーザーの情報を含む)
@@ -34,9 +35,7 @@ const SessionSocketInitializer = ({children}:{children:React.ReactNode}) => {
     if(!userSession)return;
 
     const userId = userSession.session.userId;
-    // const socket = io( process.env.NEXT_PUBLIC_SOCKET_URL!,{auth:{token:userId}});
-    const socket = io(`http://${window.location.hostname}:5000`,{auth:{token:userId}});
-    // const socket = io(`http://HALLO:5000`,{auth:{token:userId}});
+    const socket = io(SOCKET_URL,{auth:{token:userId}});
     setSocket(socket);
     // socket.connect();
     console.log("メタバースに入室しました。");
